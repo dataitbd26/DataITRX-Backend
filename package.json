@@ -1,0 +1,48 @@
+{
+  "name": "data-it-rx",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js",
+    "server": "nodemon server.js"
+  },
+  "type": "module",
+  "author": "Md Sadat Khan",
+  "license": "MIT",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.204.0",
+    "axios": "^1.7.7",
+    "bcrypt": "^5.1.1",
+    "bcryptjs": "^2.4.3",
+    "colors": "^1.4.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.21.2",
+    "express-async-handler": "^1.2.0",
+    "express-fileupload": "^1.5.2",
+    "express-rate-limit": "^7.5.1",
+    "express-validator": "^7.1.0",
+    "fs": "^0.0.1-security",
+    "helmet": "^8.1.0",
+    "ip": "^2.0.1",
+    "jsonwebtoken": "^9.0.2",
+    "moment": "^2.30.1",
+    "moment-timezone": "^0.6.0",
+    "mongoose": "^6.13.8",
+    "multer": "^1.4.5-lts.1",
+    "node-cron": "^3.0.2",
+    "node-fetch": "^3.3.2",
+    "passport": "^0.7.0",
+    "passport-facebook": "^3.0.0",
+    "passport-google-oauth20": "^2.0.0",
+    "patch-package": "^8.0.0",
+    "path": "^0.12.7",
+    "punycode": "^2.3.1",
+    "qs": "^6.13.0",
+    "unique-names-generator": "^4.7.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.7"
+  }
+}
