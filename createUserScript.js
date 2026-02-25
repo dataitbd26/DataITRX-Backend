@@ -1,48 +1,53 @@
-// createUserScript.js
-
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
-import bcrypt from 'bcrypt';
-import User from './app/modules/User/Users.model.js';
-import connectDB from './config/db.js';
+import User from './app/modules/User/Users.model.js'; 
+import connectDB from './config/db.js'; 
 
 dotenv.config();
 
-const createUser = async () => {
+const seedUser = async () => {
   try {
-    // Connect to DB
+
     await connectDB();
 
-    // Create new user details
-    const userData = {
-      email: 'sadat@gmail.com',
-      password: '12345678',
+
+    const adminData = {
       name: 'MD SADAT KHAN',
-      role: 'admin',
+      email: 'sadatcse@gmail.com',
+      password: '12345678', // Plain text: The User model's .pre('save') hook will hash this
+      phone: '0123456789',
+      role: 'admin',    // Setting as superadmin to bypass restrictions in your controller
+      department: 'IT',
       branch: 'demo',
       status: 'active',
     };
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ email: userData.email });
+    // 3. Check for Existing User
+    const existingUser = await User.findOne({ email: adminData.email });
+    
     if (existingUser) {
-      console.log('❌ User already exists with this email');
-      process.exit(0);
+      console.log(`info: User ${adminData.email} already exists. Skipping...`.yellow);
+    } else {
+      // 4. Create the User
+      // We use 'new User' + 'save()' to ensure the password hashing middleware triggers
+      const newUser = new User(adminData);
+      await newUser.save();
+      
+      console.log('---------------------------------');
+      console.log('✅ Success: Initial User Created!'.green.bold);
+      console.log(`Email: ${adminData.email}`);
+      console.log(`Role:  ${adminData.role}`);
+      console.log('---------------------------------');
     }
 
-    // Hash password manually (since `save()` hook may not be triggered with `create`)
-    const salt = await bcrypt.genSalt(10);
-    userData.password = await bcrypt.hash(userData.password, salt);
-
-    // Create user
-    const newUser = await User.create(userData);
-    console.log('✅ User created successfully:', newUser.email);
-
+    // 5. Close connection and exit
+    mongoose.connection.close();
     process.exit(0);
+    
   } catch (error) {
-    console.error('Error creating user:', error.message);
+    console.error(`❌ Error seeding user: ${error.message}`.red.bold);
     process.exit(1);
   }
 };
 
-createUser();
+seedUser();

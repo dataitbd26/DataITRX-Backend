@@ -5,38 +5,63 @@ const { Schema, model } = mongoose;
 
 const UserSchema = Schema(
   {
+
+
+    name: {
+      type: String,
+      required: [true, "Please provide employee name"],
+      trim: true,
+    },
+
     email: {
       type: String,
-      required: [true, "Please provide an email address"],
+      required: [true, "Please provide an email"],
       unique: true,
       lowercase: true,
       trim: true,
     },
+
     password: {
       type: String,
       required: [true, "Please provide a password"],
     },
 
-
-    role: {
+    phone: {
       type: String,
-      enum: ["admin", "user", "manager"], // Adjust roles as per your needs
-      default: "user",
+      required: [true, "Please provide phone number"],
     },
+
+    photo: {
+      type: String,
+      default: "",
+    },
+
+role: {
+  type: String,
+  required: [true, "Please provide user role"],
+  enum: {
+    values: ["Compounders", "Assistants", "Doctor", "Admin", "SuperAdmin"],
+    message: "{VALUE} is not a valid role",
+  },
+},
 
     status: {
       type: String,
-      enum: ["active", "inactive"],
+      enum: ["active", "inactive", "on-leave"],
       default: "active",
     },
 
+    branch: {
+      type: String,
+      required: [true, "Please provide hotel branch"],
+    },
   },
   { timestamps: true }
 );
 
-// Hash the password before saving
+
 UserSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next(); // Skip if password not modified
+  if (!this.isModified("password")) return next(); 
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
   next();
