@@ -8,6 +8,7 @@ const MedicineTypeSchema = Schema(
     },
     brandName: {
       type: String,
+      required: true,
     },
     packageMark: {
       type: String,
@@ -24,7 +25,7 @@ const MedicineTypeSchema = Schema(
     status: {
       type: String,
       enum: ["pending", "draft", "final"],
-      default: "final",
+      default: "pending",
     },
   },
   { timestamps: true }

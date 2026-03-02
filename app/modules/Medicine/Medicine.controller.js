@@ -5,10 +5,34 @@ export async function getAllMedicines(req, res) {
   const limit = parseInt(req.query.limit) || 10;
   const skip = (page - 1) * limit;
 
+  const { status, manufacturer, search } = req.query;
+
   try {
-    const result = await Medicine.find().skip(skip).limit(limit);
-    const total = await Medicine.countDocuments();
-    
+    let filter = {};
+
+    if (status) {
+      filter.status = status;
+    }
+
+    if (manufacturer) {
+      filter.manufacturer = manufacturer;
+    }
+
+    if (search) {
+      filter.$or = [
+        { genericName: { $regex: search, $options: "i" } },
+        { brandName: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    const result = await Medicine.find(filter)
+      .skip(skip)
+      .limit(limit)
+      // Changed sorting from createdAt to brandName (1 = ascending, -1 = descending)
+      .sort({ brandName: 1 }); 
+
+    const total = await Medicine.countDocuments(filter);
+
     res.status(200).json({
       data: result,
       currentPage: page,

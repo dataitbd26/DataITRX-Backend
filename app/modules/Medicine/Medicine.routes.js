@@ -14,7 +14,7 @@ import { authenticateToken } from "../../../middleware/authMiddleware.js";
 const MedicineRoutes = Router();
 
 // Protect all routes with authentication middleware
-MedicineRoutes.get("/", authenticateToken, getAllMedicines);
+MedicineRoutes.get("/",  getAllMedicines);
 MedicineRoutes.get("/get-all", authenticateToken, getAllMedicine); // Kept for consistency with template structure
 MedicineRoutes.get("/get-id/:id", authenticateToken, getByIdMedicine);
 MedicineRoutes.get("/filter/manufacturer/:manufacturer", authenticateToken, getMedicineByManufacturer);

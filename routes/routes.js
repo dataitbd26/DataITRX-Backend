@@ -9,6 +9,8 @@ import DoctorProfileRoutes from "../app/modules/DoctorProfile/DoctorProfiles.rou
 import DoctorDepartmentRoutes from "../app/modules/DoctorDepartment/DoctorDepartments.routes.js";
 import ChamberRoutes from "../app/modules/Chamber/Chambers.routes.js";
 import LabtestRoutes from "../app/modules/Labtest/Labtests.routes.js";
+import MedicinesRoutes from "../app/modules/Medicine/Medicine.routes.js";
+import MedicineManufacturerRoutes from "../app/modules/MedicineManufacturer/MedicineManufacturers.routes.js";
 // Used Controllers / Middleware
 import { getImageUrl } from "../config/space.js";
 import transactionLogger from "../middleware/transactionLogger.js";
@@ -30,4 +32,6 @@ routes.use("/doctor-departments", DoctorDepartmentRoutes);
 routes.post("/get-image-url", getImageUrl);
 routes.use("/chambers", ChamberRoutes);
 routes.use("/labtests", LabtestRoutes);
+routes.use("/medicines", MedicinesRoutes);
+routes.use("/medicine-manufacturers", MedicineManufacturerRoutes);
 export default routes;
