@@ -14,7 +14,7 @@ import MedicineManufacturerRoutes from "../app/modules/MedicineManufacturer/Medi
 // Used Controllers / Middleware
 import { getImageUrl } from "../config/space.js";
 import transactionLogger from "../middleware/transactionLogger.js";
-
+import LabTestDeptRoutes from "../app/modules/LabTestDept/LabTestDept.routes.js";
 const routes = Router();
 
 // Middleware
@@ -34,4 +34,5 @@ routes.use("/chambers", ChamberRoutes);
 routes.use("/labtests", LabtestRoutes);
 routes.use("/medicines", MedicinesRoutes);
 routes.use("/medicine-manufacturers", MedicineManufacturerRoutes);
+routes.use("/lab-test-dept", LabTestDeptRoutes);
 export default routes;
