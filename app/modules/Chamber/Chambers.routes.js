@@ -1,11 +1,11 @@
 import { Router } from "express";
 import {
-  createChamber,
-  getAllChambers,
-  getChamberById,
-  getChambersByBranch,
-  updateChamber,
-  removeChamber,
+    createChamber,
+    getAllChambers,
+    getChamberById,
+    getChambersByBranch,
+    updateChamber,
+    removeChamber,
 } from "./Chambers.controller.js";
 import { authenticateToken } from "../../../middleware/authMiddleware.js";
 

@@ -192,7 +192,7 @@ export async function updateUser(req, res) {
 
 export async function changePassword(req, res) {
   // Note: Check your middleware. Usually it is req.user.id, not req.user.userId
-  const { id } = req.user; 
+  const { id } = req.user;
   const { oldPassword, newPassword } = req.body;
 
   try {
