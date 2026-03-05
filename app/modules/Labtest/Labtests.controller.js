@@ -1,14 +1,36 @@
 import Labtest from "./Labtests.model.js";
+import LabTestDept from "../LabTestDept/LabTestDept.model.js"; // Kept your import
 
 export async function getAllLabtests(req, res) {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
+    
+    // Extract search and department from query
+    const search = req.query.search;
+    const department = req.query.department;
 
+    // Build the dynamic search and filter
+    let filter = {};
+    
+    // Exact match for dropdown filter
+    if (department) {
+      filter.department = department;
+    }
+
+    // Dynamic search for search bar
+    if (search) {
+      filter.$or = [
+        { testName: { $regex: search, $options: "i" } },
+        { department: { $regex: search, $options: "i" } }
+      ];
+    }
+
+    // Apply the filter to both the data query and the total count
     const [result, totalLabtests] = await Promise.all([
-      Labtest.find().skip(skip).limit(limit).sort({ createdAt: -1 }),
-      Labtest.countDocuments()
+      Labtest.find(filter).skip(skip).limit(limit).sort({ createdAt: -1 }),
+      Labtest.countDocuments(filter)
     ]);
 
     res.status(200).json({

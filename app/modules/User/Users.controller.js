@@ -7,6 +7,7 @@ import bcrypt from "bcrypt";
 export async function getAllUsers(req, res) {
   try {
     const result = await User.find();
+    console.log("Fetched users:", result); // Debugging log
     res.status(200).json(result);
   } catch (err) {
     res.status(500).send({ error: err.message });
@@ -96,11 +97,27 @@ export async function loginUser(req, res) {
 // Remove a user by ID
 export async function removeUser(req, res) {
   const id = req.params.id;
+  const currentUser = req.user; // Grab the user from the JWT token
+
   try {
+
+    // Prevent SuperAdmin from accidentally deleting themselves
+    if (currentUser.role !== 'SuperAdmin') {
+      return res.status(403).json({
+        message: "Access denied. Only SuperAdmins can delete accounts."
+      });
+    }
+
+    // 2. Self-Deletion Check: Prevent SuperAdmin from deleting themselves
+    // Note: Use .toString() if one is an objectId and the other is a string
+    if (currentUser.id.toString() === id.toString()) {
+      return res.status(400).json({ message: "You cannot delete your own account." });
+    }
+
     const result = await User.findByIdAndDelete(id);
     if (result) {
       res.status(200).json({ message: "User deleted successfully" });
-    } else {
+    } else {  
       res.status(404).json({ message: "User not found" });
     }
   } catch (err) {
@@ -125,18 +142,20 @@ export async function logoutUser(req, res) {
 
 export async function updateUser(req, res) {
   try {
-    const currentUser = req.user;
+    const currentUser = req.user; // from JWT token
     const targetUserId = req.params.id;
     const updates = req.body;
 
     // --- ✅ SUPER ADMIN LOGIC ---
-    // If the person making the request is a superadmin, bypass all other checks.
-    if (currentUser.role === 'superadmin') {
-      // Hash password if it's being changed
+    // Note: Fixed the casing to match your Schema exactly ("SuperAdmin")
+    if (currentUser.role === 'SuperAdmin') {
+
+      // If SuperAdmin provided a new password, hash it
       if (updates.password && updates.password.trim() !== "") {
         const salt = await bcrypt.genSalt(10);
         updates.password = await bcrypt.hash(updates.password, salt);
       } else {
+        // If password field is empty, remove it from updates so we don't overwrite the existing one
         delete updates.password;
       }
 
@@ -150,25 +169,25 @@ export async function updateUser(req, res) {
     }
 
 
-    // ---  पुराने नियम (OLD RULES FOR ADMIN & MANAGER) ---
+    // --- ❌ OLD RULES FOR ADMIN & MANAGER ---
     const targetUser = await User.findById(targetUserId);
     if (!targetUser) {
       return res.status(404).json({ message: "User not found." });
     }
 
-    // Security: Prevent anyone other than a superadmin from editing another superadmin
-    if (targetUser.role === 'superadmin') {
-      return res.status(403).json({ message: "Forbidden: Cannot modify a superadmin account." });
+    // Security: Prevent anyone other than a SuperAdmin from editing another SuperAdmin
+    if (targetUser.role === 'SuperAdmin') {
+      return res.status(403).json({ message: "Forbidden: Cannot modify a SuperAdmin account." });
     }
 
     // Security: Prevent a Manager from editing an Admin's profile
-    if (currentUser.role === 'manager' && targetUser.role === 'admin') {
+    if (currentUser.role === 'Manager' && targetUser.role === 'Admin') {
       return res.status(403).json({ message: "Forbidden: Managers cannot edit administrator accounts." });
     }
 
-    // Security: Prevent a Manager from assigning the 'admin' role
-    if (updates.role && updates.role === 'admin' && currentUser.role !== 'admin') {
-      return res.status(403).json({ message: "Forbidden: You do not have permission to assign the admin role." });
+    // Security: Prevent a Manager from assigning the 'Admin' role
+    if (updates.role && updates.role === 'Admin' && currentUser.role !== 'Admin') {
+      return res.status(403).json({ message: "Forbidden: You do not have permission to assign the Admin role." });
     }
 
     // Handle Password Reset for admins/managers
@@ -189,6 +208,7 @@ export async function updateUser(req, res) {
     res.status(500).send({ error: "An unexpected server error occurred." });
   }
 }
+
 
 export async function changePassword(req, res) {
   // Note: Check your middleware. Usually it is req.user.id, not req.user.userId
