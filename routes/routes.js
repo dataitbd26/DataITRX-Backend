@@ -34,5 +34,5 @@ routes.use("/chambers", ChamberRoutes);
 routes.use("/labtests", LabtestRoutes);
 routes.use("/medicines", MedicinesRoutes);
 routes.use("/medicine-manufacturers", MedicineManufacturerRoutes);
-routes.use("/lab-test-dept", LabTestDeptRoutes);
+routes.use("/labtestdepts", LabTestDeptRoutes);
 export default routes;
