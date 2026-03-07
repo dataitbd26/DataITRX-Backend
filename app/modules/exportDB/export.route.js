@@ -1,13 +1,10 @@
 import express from "express";
-import { exportFullDatabase } from "../controllers/exportController.js";
-// import { protect, admin } from "../middleware/authMiddleware.js"; // Highly recommended!
+import { exportFullDatabase } from "./exportController.js";
+// import { protect, admin } from "../middleware/authMiddleware.js"; // HIGHLY recommended to uncomment this!
 
 const router = express.Router();
 
-// Add the export route
-// In production, you should wrap this like: router.get("/export-db", protect, admin, exportFullDatabase);
-router.get("/export-db", exportFullDatabase);
-
-// ... your other routes ...
+// This will be accessible at: YOUR_API_URL/export
+router.get("/", exportFullDatabase);
 
 export default router;
