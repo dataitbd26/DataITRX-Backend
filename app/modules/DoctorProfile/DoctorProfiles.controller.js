@@ -6,9 +6,29 @@ export async function getAllDoctorProfiles(req, res) {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
+    // 1. Extract the search term from the query string
+    const search = req.query.search;
+
+    // 2. Build the query object
+    let query = {};
+    if (search) {
+      query = {
+        $or: [
+          { name: { $regex: search, $options: "i" } },
+          { phone: { $regex: search, $options: "i" } },
+          { email: { $regex: search, $options: "i" } },
+          { bmdcRegistrationNumber: { $regex: search, $options: "i" } }
+        ]
+      };
+    }
+
+    // 3. Apply the query to both find() and countDocuments()
     const [result, totalDoctorProfiles] = await Promise.all([
-      DoctorProfile.find().skip(skip).limit(limit).sort({ createdAt: -1 }),
-      DoctorProfile.countDocuments()
+      DoctorProfile.find(query)
+        .skip(skip)
+        .limit(limit)
+        .sort({ createdAt: -1 }),
+      DoctorProfile.countDocuments(query)
     ]);
 
     res.status(200).json({

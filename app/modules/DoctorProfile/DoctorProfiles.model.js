@@ -11,7 +11,7 @@ const DoctorProfileSchema = Schema(
     bmdcRegistrationNumber: {
       type: String,
       required: [true, "Please provide the BMDC registration number"],
-      unique: true,
+
     },
     degree: {
       type: String,
