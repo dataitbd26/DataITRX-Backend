@@ -52,6 +52,7 @@ const DoctorProfileSchema = Schema(
     branch: {
       type: String,
       required: [true, "Please provide the branch"],
+      unique: true,
     },
   },
   { timestamps: true }

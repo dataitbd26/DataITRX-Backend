@@ -23,6 +23,13 @@ import LabTestDeptRoutes from "../app/modules/LabTestDept/LabTestDept.routes.js"
 import PatientRoutes from "../app/modules/Patient/Patients.routes.js";
 import ExportRoutes from "../app/modules/exportDB/export.route.js";
 import ImportRoutes from "../app/modules/ImportDB/import.route.js";
+
+
+
+
+import { getBranchDoctorNames } from "../app/modules/DoctorProfile/DoctorProfiles.controller.js";
+
+
 const routes = Router();
 
 // Middleware
@@ -50,4 +57,6 @@ routes.use("/labtestdepts", LabTestDeptRoutes);
 routes.use("/lab-test-dept", LabTestDeptRoutes);
 routes.use("/patients", PatientRoutes);
 routes.use("/prescription-templates", PrescriptionTemplateRoutes);
+routes.get("/branch-doctor-list", getBranchDoctorNames);
+
 export default routes;

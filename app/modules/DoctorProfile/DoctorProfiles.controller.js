@@ -26,6 +26,25 @@ export async function getAllDoctorProfiles(req, res) {
   }
 }
 
+
+export async function getBranchDoctorNames(req, res) {
+  try {
+    const result = await DoctorProfile.find({}, {
+      branch: 1,
+      name: 1,
+      _id: 0
+    }).sort({ branch: 1 });
+
+    res.status(200).json({
+      success: true,
+      data: result
+    });
+
+  } catch (err) {
+    res.status(500).send({ error: err.message });
+  }
+}
+
 export async function getDoctorProfilesByBranch(req, res) {
   const branch = req.params.branch;
   try {
@@ -35,7 +54,7 @@ export async function getDoctorProfilesByBranch(req, res) {
 
     const [result, totalDoctorProfiles] = await Promise.all([
       DoctorProfile.find({ branch }).skip(skip).limit(limit).sort({ createdAt: -1 }),
-      DoctorProfile.countDocuments({ branch }) 
+      DoctorProfile.countDocuments({ branch })
     ]);
 
     res.status(200).json({
