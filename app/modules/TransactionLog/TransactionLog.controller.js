@@ -1,4 +1,5 @@
 import TransactionLog from "./TransactionLog.model.js";
+import User from "../User/Users.model.js";
 
 // Get all transaction logs
 export async function getAllTransactionLogs(req, res) {
@@ -113,6 +114,25 @@ export async function createTransactionLog(req, res) {
   }
 }
 
+// Update a transaction log by ID
+export async function updateTransactionLog(req, res) {
+  const id = req.params.id;
+  const logData = req.body;
+  try {
+    const updatedLog = await TransactionLog.findByIdAndUpdate(id, logData, {
+      new: true,
+      runValidators: true,
+    });
+    if (updatedLog) {
+      res.status(200).json(updatedLog);
+    } else {
+      res.status(404).json({ message: "Transaction log not found" });
+    }
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+}
+
 // Delete a transaction log by ID
 export async function removeTransactionLog(req, res) {
   const id = req.params.id;
@@ -124,6 +144,21 @@ export async function removeTransactionLog(req, res) {
     } else {
       res.status(404).json({ message: "Transaction log not found" });
     }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+// ========== NEW FUNCTION FOR DYNAMIC BRANCH DROPDOWN ==========
+// Get distinct branch names from transaction logs
+export async function getDistinctBranches(req, res) {
+  try {
+    const branches = await TransactionLog.distinct('branch');
+    // Filter out null/empty values and format for dropdown
+    const branchOptions = branches
+      .filter(b => b && b.trim() !== '')
+      .map(b => ({ label: b, value: b }));
+    res.status(200).json(branchOptions);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

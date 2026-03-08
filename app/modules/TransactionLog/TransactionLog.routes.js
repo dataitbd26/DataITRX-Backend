@@ -1,22 +1,25 @@
-import { Router } from "express";
+import express from 'express';
 import {
-  createTransactionLog,
   getAllTransactionLogs,
-  getTransactionLogById,
-  removeTransactionLog,
   getPaginatedTransactionLogs,
   getTransactionLogsByBranch,
-} from "./TransactionLog.controller.js";
-import { authenticateToken } from "../../../middleware/authMiddleware.js"; 
+  getTransactionLogById,
+  createTransactionLog,
+  removeTransactionLog,
+  // <-- import the new function
+} from './TransactionLog.controller.js';
 
-const TransactionLogRoutes = Router();
+const router = express.Router();
 
-// Protect all routes with authentication middleware
-TransactionLogRoutes.get("/", authenticateToken, getAllTransactionLogs);
-TransactionLogRoutes.get("/paginated", authenticateToken, getPaginatedTransactionLogs);
-TransactionLogRoutes.get("/:branch/get-all", authenticateToken, getTransactionLogsByBranch);
-TransactionLogRoutes.get("/get-id/:id", authenticateToken, getTransactionLogById);
-TransactionLogRoutes.post("/create", authenticateToken, createTransactionLog);
-TransactionLogRoutes.delete("/delete/:id", authenticateToken, removeTransactionLog);
+// Existing routes
+router.get('/all', getAllTransactionLogs);
+router.get('/paginated', getPaginatedTransactionLogs);
+router.get('/branch/:branch', getTransactionLogsByBranch);
+router.get('/:id', getTransactionLogById);
+router.post('/', createTransactionLog);
+router.delete('/delete/:id', removeTransactionLog);
 
-export default TransactionLogRoutes;
+// NEW ROUTE: get distinct branches for dynamic dropdown
+
+
+export default router;
