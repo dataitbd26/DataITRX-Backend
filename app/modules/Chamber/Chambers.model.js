@@ -23,6 +23,20 @@ const ChamberSchema = Schema(
         branch: {
             type: String,
         },
+        // --- Newly Added Fields ---
+        consultancyFee: {
+            type: Number,
+            required: [true, "Please provide the consultancy fee"],
+        },
+        oldConsultancyFee: {
+            type: Number,
+            // You can add a default or make it required if needed
+        },
+        followUpDay: {
+            type: Number,
+            default: 0, // e.g., 7 or 15 days for a valid follow-up
+        },
+        // --------------------------
         schedule: [
             {
                 day: {
