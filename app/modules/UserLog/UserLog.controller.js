@@ -11,22 +11,26 @@ export async function getAllUserLogs(req, res) {
 }
 
 export async function getPaginatedUserLogs(req, res) {
-  const { page = 1, limit = 10 } = req.query; // Default to page 1, 10 items per page
+  // 1. Explicitly convert string queries to numbers
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 10;
 
   try {
-    const totalLogs = await UserLog.countDocuments(); // Total count of logs
+    const totalLogs = await UserLog.countDocuments(); 
+    
     const logs = await UserLog.find()
-      .sort({ createdAt: -1 }) // Sort by latest
-      .skip((page - 1) * limit)
-      .limit(parseInt(limit));
+      .sort({ createdAt: -1 }) 
+      .skip((page - 1) * limit) // Now safely doing math with numbers
+      .limit(limit);            // Now safely passing a number
 
     res.status(200).json({
       totalLogs,
       totalPages: Math.ceil(totalLogs / limit),
-      currentPage: parseInt(page),
+      currentPage: page,
       logs,
     });
   } catch (err) {
+    console.error("Pagination Error:", err); // Logs error to your terminal
     res.status(500).send({ error: err.message });
   }
 }
