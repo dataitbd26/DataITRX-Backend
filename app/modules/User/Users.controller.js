@@ -6,10 +6,32 @@ import bcrypt from "bcrypt";
 // Get all users
 export async function getAllUsers(req, res) {
   try {
-    const result = await User.find();
-    console.log("Fetched users:", result); // Debugging log
+
+    const { search, branch, role } = req.query;
+
+
+    let query = {};
+
+
+    if (search) {
+      query.$or = [
+        { email: { $regex: search, $options: "i" } },
+        { phone: { $regex: search, $options: "i" } },
+      ];
+    }
+    if (branch) {
+      query.branch = branch;
+    }
+
+    if (role) {
+      query.role = role;
+    }
+
+    const result = await User.find(query).select("-password");
+
     res.status(200).json(result);
   } catch (err) {
+    console.error("Error fetching users:", err);
     res.status(500).send({ error: err.message });
   }
 }
@@ -117,7 +139,7 @@ export async function removeUser(req, res) {
     const result = await User.findByIdAndDelete(id);
     if (result) {
       res.status(200).json({ message: "User deleted successfully" });
-    } else {  
+    } else {
       res.status(404).json({ message: "User not found" });
     }
   } catch (err) {
