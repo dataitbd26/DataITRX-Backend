@@ -142,9 +142,9 @@ export async function removeDoctorProfile(req, res) {
   try {
     const result = await DoctorProfile.findByIdAndDelete(id);
     if (result) {
-      res.status(200).json({ message: "Doctor profile deleted successfully" });
+      res.status(200).json({ message: "Doctor profile deleted successfully!" });
     } else {
-      res.status(404).json({ message: "Doctor profile not found" });
+      res.status(404).json({ message: "Doctor profile not found!" });
     }
   } catch (err) {
     res.status(500).send({ error: err.message });
