@@ -67,26 +67,17 @@ export async function getBranchDoctorNames(req, res) {
 
 export async function getDoctorProfilesByBranch(req, res) {
   const branch = req.params.branch;
-  try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
 
-    const [result, totalDoctorProfiles] = await Promise.all([
-      DoctorProfile.find({ branch }).skip(skip).limit(limit).sort({ createdAt: -1 }),
-      DoctorProfile.countDocuments({ branch })
-    ]);
+  try {
+    const result = await DoctorProfile
+      .find({ branch })
+      .sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
-      data: result,
-      pagination: {
-        totalItems: totalDoctorProfiles,
-        totalPages: Math.ceil(totalDoctorProfiles / limit),
-        currentPage: page,
-        itemsPerPage: limit
-      }
+      data: result
     });
+
   } catch (err) {
     res.status(500).send({ error: err.message });
   }

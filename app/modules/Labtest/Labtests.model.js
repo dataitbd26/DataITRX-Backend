@@ -9,7 +9,11 @@ const LabtestSchema = Schema(
     },
     department: {
       type: String,
-      required: [true, "Please provide the test department"],
+    },
+    status: {
+      type: String,
+      enum: ["active", "inactive", "pending"],
+      default: "active",
     },
   },
   { timestamps: true }
