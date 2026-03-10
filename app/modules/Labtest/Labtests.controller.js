@@ -6,31 +6,35 @@ export async function getAllLabtests(req, res) {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
-    
-    // Extract search and department from query
+
+    // Extract query params
     const search = req.query.search;
     const department = req.query.department;
+    const status = req.query.status;
 
-    // Build the dynamic search and filter
     let filter = {};
-    
-    // Exact match for dropdown filter
+
+    // Department filter
     if (department) {
       filter.department = department;
     }
 
-    // Dynamic search for search bar
+    // Status filter
+    if (status) {
+      filter.status = status;
+    }
+
+    // Search filter
     if (search) {
       filter.$or = [
         { testName: { $regex: search, $options: "i" } },
-        { department: { $regex: search, $options: "i" } }
+        { department: { $regex: search, $options: "i" } },
       ];
     }
 
-    // Apply the filter to both the data query and the total count
     const [result, totalLabtests] = await Promise.all([
       Labtest.find(filter).skip(skip).limit(limit).sort({ createdAt: -1 }),
-      Labtest.countDocuments(filter)
+      Labtest.countDocuments(filter),
     ]);
 
     res.status(200).json({
@@ -40,14 +44,13 @@ export async function getAllLabtests(req, res) {
         totalItems: totalLabtests,
         totalPages: Math.ceil(totalLabtests / limit),
         currentPage: page,
-        itemsPerPage: limit
-      }
+        itemsPerPage: limit,
+      },
     });
   } catch (err) {
     res.status(500).send({ error: err.message });
   }
 }
-
 // Get labtest by ID
 export async function getLabtestById(req, res) {
   const id = req.params.id;
