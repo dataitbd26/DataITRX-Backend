@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-// 1. Medicine Sub-schema (Reused from Templates)
+
 const medicineSchema = new mongoose.Schema({
     name: { type: String, required: true },
     dosage: { type: String, default: '' },
