@@ -13,12 +13,7 @@ const medicineSchema = new mongoose.Schema({
 // 2. Main Prescription Schema
 const prescriptionSchema = new mongoose.Schema({
 
-    // --- METADATA ---
-    prescriptionId: {
-        type: String,
-        required: true,
-        unique: true // e.g., "RX-20260307-001"
-    },
+
 
     branch: {
         type: String,
