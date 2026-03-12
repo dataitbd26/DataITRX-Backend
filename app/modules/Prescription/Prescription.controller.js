@@ -1,4 +1,6 @@
 import Prescription from './Prescription.model.js';
+import Patient from '../Patient/Patients.model.js';
+
 
 
 // Get all prescriptions
@@ -33,6 +35,7 @@ export async function getAllPrescriptions(req, res) {
         res.status(500).send({ error: err.message });
     }
 };
+
 
 
 // Get prescriptions by branch
@@ -80,6 +83,7 @@ export async function getPrescriptionById(req, res) {
     try {
 
         const result = await Prescription.findById(id);
+ 
 
         if (result) {
             res.status(200).json(result);
@@ -102,6 +106,8 @@ export async function createPrescription(req, res) {
 
         const result = await Prescription.create(data);
 
+        // console.log(result);
+
         res.status(201).json(result);
 
     } catch (err) {
@@ -123,6 +129,8 @@ export async function updatePrescription(req, res) {
             data,
             { new: true }
         );
+
+    
 
         if (result) {
             res.status(200).json(result);

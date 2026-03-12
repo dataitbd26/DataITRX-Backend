@@ -105,6 +105,6 @@ const DoctorWebsiteSchema = Schema(
     { timestamps: true }
 );
 
-const DoctorWebsite = model("DoctorWebsite", DoctorWebsiteSchema);
+const DoctorWebsite = mongoose.models.DoctorWebsite || model("DoctorWebsite", DoctorWebsiteSchema);
 
 export default DoctorWebsite;
