@@ -13,6 +13,20 @@ const medicineSchema = new mongoose.Schema({
 // 2. Main Prescription Schema
 const prescriptionSchema = new mongoose.Schema({
 
+   prescriptionId: {
+        type: String,
+        required: true,
+        unique: true,
+        default: () => {
+            // Generates 4 digits strictly between 1000 and 9999 (never starts with 0)
+            const randomPart = Math.floor(1000 + Math.random() * 9000).toString(); 
+            // Gets the last 4 digits of the time (can start with 0, but it's safe at the end)
+            const timePart = Date.now().toString().slice(-4); 
+            
+            // Result: Always exactly 8 digits, never starts with a 0
+            return randomPart + timePart; 
+        }
+    },
 
 
     branch: {
@@ -99,3 +113,4 @@ prescriptionSchema.index({ branch: 1 });
 prescriptionSchema.index({ 'patient.name': 'text', prescriptionId: 'text' });
 
 export default mongoose.model('Prescription', prescriptionSchema);
+
