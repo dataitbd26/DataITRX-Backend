@@ -31,6 +31,9 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
   : [
     "http://localhost:5173",
     "http://localhost:3000",
+    "https://dataitrx-frontend.vercel.app",
+    "https://dataitrx.com",
+    "https://www.dataitrx.com"
   ];
 
 app.use(
