@@ -30,6 +30,7 @@ import AppointmentRoutes from "../app/modules/Appointment/Appointments.routes.js
 
 
 import { getBranchDoctorNames } from "../app/modules/DoctorProfile/DoctorProfiles.controller.js";
+import AppointmentBlockRoutes from "../app/modules/AppointmentBlock/AppointmentBlock.routes.js";
 
 
 const routes = Router();
@@ -62,4 +63,5 @@ routes.use("/prescription-templates", PrescriptionTemplateRoutes);
 routes.get("/branch-doctor-list", getBranchDoctorNames);
 routes.use("/dashboard", dashboardRoutes);
 routes.use("/appointments", AppointmentRoutes);
+routes.use("/appointment-blocks", AppointmentBlockRoutes);
 export default routes;
