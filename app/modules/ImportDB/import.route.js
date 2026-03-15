@@ -6,7 +6,7 @@ import { importDatabase } from "./importController.js";
 const router = express.Router();
 
 // Configure multer to save files temporarily in an 'uploads' folder
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({ dest: '/tmp/' });
 
 // The field name 'backupFile' MUST match what we send from React
 router.post("/", upload.single('backupFile'), importDatabase);
