@@ -15,7 +15,7 @@ const DoctorWebsiteRoutes = Router();
 
 // Protect all routes with authentication middleware
 DoctorWebsiteRoutes.get("/", authenticateToken, getAllDoctorWebsites);
-DoctorWebsiteRoutes.get("/branch/:branch", authenticateToken, getDoctorWebsiteByBranch);
+DoctorWebsiteRoutes.get("/branch/:branch", getDoctorWebsiteByBranch);
 DoctorWebsiteRoutes.get("/get-id/:id", authenticateToken, getDoctorWebsiteById);
 DoctorWebsiteRoutes.post("/post", authenticateToken, createDoctorWebsite);
 DoctorWebsiteRoutes.put("/update/:id", authenticateToken, updateDoctorWebsite);

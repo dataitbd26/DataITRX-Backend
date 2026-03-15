@@ -43,6 +43,12 @@ const AppointmentSchema = Schema(
       type: String,
       required: [true, "Please provide the branch"],
     },
+
+    paymentStatus: {
+      type: String,
+      enum: ["Unpaid", "Collect"],
+      default: "Unpaid",
+    },
   },
   { timestamps: true }
 );

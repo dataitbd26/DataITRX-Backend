@@ -36,6 +36,11 @@ const ChamberSchema = Schema(
             type: Number,
             default: 0, // e.g., 7 or 15 days for a valid follow-up
         },
+
+        maxDailyPatient: {
+            type: Number,
+            default: 0, // 0 can signify unlimited, or change to whatever default you prefer
+        },
         // --------------------------
         schedule: [
             {

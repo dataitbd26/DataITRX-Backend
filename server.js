@@ -14,12 +14,10 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 connectDB();
-
-
 app.use(helmet({ hidePoweredBy: true }));
 
 const limiter = rateLimit({
-  windowMs: 5 * 60 * 1000, // 5 minutes
+  windowMs: 5 * 60 * 1000,
   max: 10000,
 });
 app.use(limiter);
@@ -65,9 +63,6 @@ app.use(
 
 
 app.use(express.static("public"));
-
-
-
 app.use("/api", routes);
 
 app.get("/", (req, res) => {
@@ -75,11 +70,7 @@ app.get("/", (req, res) => {
 });
 
 
-
 app.use(errorHandler);
-
-
-
 app.listen(port, () => {
   console.log(`🚀 Server running on port ${port}`);
 });
