@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-// 1. Medicine Sub-schema (Reused from Templates)
+
 const medicineSchema = new mongoose.Schema({
     name: { type: String, required: true },
     dosage: { type: String, default: '' },
@@ -13,17 +13,38 @@ const medicineSchema = new mongoose.Schema({
 // 2. Main Prescription Schema
 const prescriptionSchema = new mongoose.Schema({
 
+   prescriptionId: {
+        type: String,
+        required: true,
+        unique: true,
+        default: () => {
+            // Generates 4 digits strictly between 1000 and 9999 (never starts with 0)
+            const randomPart = Math.floor(1000 + Math.random() * 9000).toString(); 
+            // Gets the last 4 digits of the time (can start with 0, but it's safe at the end)
+            const timePart = Date.now().toString().slice(-4); 
+            
+            // Result: Always exactly 8 digits, never starts with a 0
+            return randomPart + timePart; 
+        }
+    },
 
 
     branch: {
         type: String,
         required: [true, "Please provide the branch"]
     },
+    
 
     doctorId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
+    },
+
+    chamberId   : {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Chamber',
+        default: null
     },
 
     patientId: {
@@ -92,3 +113,4 @@ prescriptionSchema.index({ branch: 1 });
 prescriptionSchema.index({ 'patient.name': 'text', prescriptionId: 'text' });
 
 export default mongoose.model('Prescription', prescriptionSchema);
+

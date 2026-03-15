@@ -91,6 +91,7 @@ export async function createPatient(req, res) {
     try {
         const patientData = req.body;
         const result = await Patient.create(patientData);
+        console.log("Patient created:", result);
         res.status(201).json(result);
     } catch (err) {
         res.status(500).send({ error: err.message });

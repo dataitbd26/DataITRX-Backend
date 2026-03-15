@@ -79,6 +79,7 @@ export async function getTemplateById(req, res) {
     try {
 
         const result = await PrescriptionTemplate.findById(id);
+        // console.log(result);
 
         if (result) {
             res.status(200).json(result);
@@ -122,6 +123,8 @@ export async function updateTemplate(req, res) {
             data,
             { new: true }
         );
+
+       
 
         if (result) {
             res.status(200).json(result);

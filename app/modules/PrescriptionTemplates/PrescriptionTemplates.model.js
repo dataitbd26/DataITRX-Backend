@@ -20,6 +20,11 @@ const templateSchema = new mongoose.Schema({
         ref: 'User',
         default: null
     },
+    chamberId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Chamber',
+        default: null
+    },
 
     isGlobal: { type: Boolean, default: true },
 
