@@ -14,6 +14,8 @@ import MedicineManufacturerRoutes from "../app/modules/MedicineManufacturer/Medi
 import DoctorWebsiteRoutes from "../app/modules/Doctorwebsite/doctorwebsite.routes.js";
 import PrescriptionTemplateRoutes from "../app/modules/PrescriptionTemplates/PrescriptionTemplates.routes.js";
 import PrescriptionRoutes from "../app/modules/Prescription/Prescription.routes.js";
+import EmailAccountRoutes from "../app/modules/EmailAccount/EmailAccounts.routes.js"; // <-- Added EmailAccount Import
+
 
 
 // Used Controllers / Middleware
@@ -64,4 +66,7 @@ routes.get("/branch-doctor-list", getBranchDoctorNames);
 routes.use("/dashboard", dashboardRoutes);
 routes.use("/appointments", AppointmentRoutes);
 routes.use("/appointment-blocks", AppointmentBlockRoutes);
+
+routes.use("/email-accounts", EmailAccountRoutes); // <-- Added EmailAccount Route
+
 export default routes;
