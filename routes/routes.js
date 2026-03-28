@@ -25,7 +25,7 @@ import ExportRoutes from "../app/modules/exportDB/export.route.js";
 import ImportRoutes from "../app/modules/ImportDB/import.route.js";
 import dashboardRoutes from "../app/modules/Dashboard/dashboard.routes.js";
 
-// import PreCheckupRoutes from "../app/modules/PreCheckups/PreCheckups.routes.js";
+import PreCheckupRoutes from "../app/modules/PreCheckups/PreCheckups.routes.js";
 import AppointmentRoutes from "../app/modules/Appointment/Appointments.routes.js";
 
 
@@ -63,5 +63,6 @@ routes.use("/prescription-templates", PrescriptionTemplateRoutes);
 routes.get("/branch-doctor-list", getBranchDoctorNames);
 routes.use("/dashboard", dashboardRoutes);
 routes.use("/appointments", AppointmentRoutes);
+routes.use("/precheckups", PreCheckupRoutes);
 routes.use("/appointment-blocks", AppointmentBlockRoutes);
 export default routes;

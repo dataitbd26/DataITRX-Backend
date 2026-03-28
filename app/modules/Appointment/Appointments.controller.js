@@ -1,6 +1,8 @@
 import Appointment from "./Appointments.model.js";
 import Patient from "../Patient/Patients.model.js";
 import Chamber from "../Chamber/Chambers.model.js";
+import Prescription from "../Prescription/Prescription.model.js";
+import PreCheckup from "../PreCheckups/PreCheckups.model.js";
 
 export async function getAllAppointments(req, res) {
   try {
@@ -40,43 +42,97 @@ export async function getAppointmentsByBranch(req, res) {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    // 1. Build a dynamic query object
     const query = { branch };
 
-    // 2. Check if chamberId is in the query params and add it to the filter
     if (req.query.chamberId) {
       query.chamberId = req.query.chamberId;
     }
 
-    // Optional: If you also want to support the date and search filters you have in your React component:
     if (req.query.date) {
-      // Assuming appointmentDate in DB is stored as a Date string (YYYY-MM-DD)
-      // Note: If you store exact timestamps, you might need a $gte / $lte date range query here
       query.appointmentDate = new Date(req.query.date);
     }
 
-    if (req.query.search) {
-      // Just an example of how you'd hook up that search bar!
-      // This requires searching through populated patient data, which usually 
-      // requires an aggregate or a two-step query in MongoDB.
+    if (req.query.status === 'Completed') {
+      query.preCheckupId = { $ne: null };
+    } else if (req.query.status === 'Pending') {
+      query.preCheckupId = null;
     }
 
-    // 3. Pass the dynamic 'query' object into the find() and countDocuments() methods
-    const [result, totalAppointments] = await Promise.all([
+    if (req.query.patientType) {
+      query.patientType = req.query.patientType;
+    }
+
+    if (req.query.paymentStatus) {
+      query.paymentStatus = req.query.paymentStatus;
+    }
+
+    if (req.query.search) {
+      const searchRegex = new RegExp(req.query.search, 'i');
+      
+      // Step 1: Find matching patients
+      const matchingPatients = await Patient.find({
+        $or: [
+          { fullName: searchRegex },
+          { phone: searchRegex }
+        ]
+      }).select('_id');
+      const patientIds = matchingPatients.map(p => p._id);
+      
+      // Step 2: Query appointments matching patient IDs OR exactly matching appointment ID
+      query.$or = [
+        { patientId: { $in: patientIds } },
+        { appointmentId: searchRegex }
+      ];
+    } else if (req.query.gender) {
+      const patientQuery = { gender: req.query.gender };
+      const matchingPatients = await Patient.find(patientQuery).select('_id');
+      const patientIds = matchingPatients.map(p => p._id);
+      query.patientId = { $in: patientIds };
+    }
+
+    const [rawResult, totalAppointments] = await Promise.all([
       Appointment.find(query)
         .populate("patientId")
         .populate("chamberId")
         .skip(skip)
         .limit(limit)
         .sort({ createdAt: -1 }),
-      Appointment.countDocuments(query) // Use the same query here!
+      Appointment.countDocuments(query)
     ]);
+
+    // Calculate Dynamic Prescription Status
+    const result = await Promise.all(rawResult.map(async (appt) => {
+        const apptObj = appt.toObject();
+        
+        if (!appt.patientId || !appt.chamberId) {
+            apptObj.isPrescription = 'No';
+            return apptObj;
+        }
+
+        const apptDate = new Date(appt.appointmentDate);
+        const startOfDay = new Date(apptDate).setHours(0, 0, 0, 0);
+        const endOfDay = new Date(apptDate).setHours(23, 59, 59, 999);
+
+        const prescriptionExists = await Prescription.exists({
+            patientId: appt.patientId._id,
+            createdAt: { $gte: new Date(startOfDay), $lte: new Date(endOfDay) }
+        });
+
+        apptObj.isPrescription = prescriptionExists ? 'Yes' : 'No';
+        return apptObj;
+    }));
+
+    // Post-computation manual filter for isPrescription
+    let finalData = result;
+    if (req.query.isPrescription) {
+        finalData = result.filter(r => r.isPrescription === req.query.isPrescription);
+    }
 
     res.status(200).json({
       success: true,
-      data: result,
+      data: finalData,
       pagination: {
-        totalItems: totalAppointments,
+        totalItems: req.query.isPrescription ? finalData.length : totalAppointments,
         totalPages: Math.ceil(totalAppointments / limit),
         currentPage: page,
         itemsPerPage: limit
@@ -92,7 +148,8 @@ export async function getAppointmentById(req, res) {
   try {
     const result = await Appointment.findById(id)
       .populate("patientId")
-      .populate("chamberId");
+      .populate("chamberId")
+      .populate("preCheckupId");
 
     if (result) {
       res.status(200).json(result);
