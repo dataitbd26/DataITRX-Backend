@@ -1,6 +1,8 @@
 import Appointment from "./Appointments.model.js";
 import Patient from "../Patient/Patients.model.js";
 import Chamber from "../Chamber/Chambers.model.js";
+import Prescription from "../Prescription/Prescription.model.js";
+import PreCheckup from "../PreCheckups/PreCheckups.model.js";
 
 export async function getAllAppointments(req, res) {
   try {
@@ -42,71 +44,95 @@ export async function getAppointmentsByBranch(req, res) {
 
     const query = { branch };
 
-    // 1. Chamber Filter
     if (req.query.chamberId) {
       query.chamberId = req.query.chamberId;
     }
 
-    // 2. Date Filter (Match any time within the requested day)
     if (req.query.date) {
-      const targetDate = new Date(req.query.date);
-      const startOfDay = new Date(targetDate.setHours(0, 0, 0, 0));
-      const endOfDay = new Date(targetDate.setHours(23, 59, 59, 999));
-      query.appointmentDate = { $gte: startOfDay, $lte: endOfDay };
+      query.appointmentDate = new Date(req.query.date);
     }
 
-    // 3. Pre-Checkup Status Filter
     if (req.query.status === 'Completed') {
-      query.preCheckupId = { $ne: null }; 
+      query.preCheckupId = { $ne: null };
     } else if (req.query.status === 'Pending') {
-      query.preCheckupId = null; 
+      query.preCheckupId = null;
     }
 
-    // 4. Patient Info Filter (Search & Gender)
-    if (req.query.search || (req.query.gender && req.query.gender !== '')) {
-      const patientQuery = { branch }; 
-      
-      if (req.query.gender) {
-        patientQuery.gender = req.query.gender;
-      }
+    if (req.query.patientType) {
+      query.patientType = req.query.patientType;
+    }
 
-      if (req.query.search) {
-        const searchRegex = new RegExp(req.query.search, 'i');
-        patientQuery.$or = [
+    if (req.query.paymentStatus) {
+      query.paymentStatus = req.query.paymentStatus;
+    }
+
+    if (req.query.search) {
+      const searchRegex = new RegExp(req.query.search, 'i');
+      
+      // Step 1: Find matching patients
+      const matchingPatients = await Patient.find({
+        $or: [
           { fullName: searchRegex },
           { phone: searchRegex }
-        ];
-      }
-
-      const matchedPatients = await Patient.find(patientQuery).select('_id');
-      const patientIds = matchedPatients.map(p => p._id);
+        ]
+      }).select('_id');
+      const patientIds = matchingPatients.map(p => p._id);
       
-      if (patientIds.length === 0) {
-         return res.status(200).json({
-           success: true,
-           data: [],
-           pagination: { totalItems: 0, totalPages: 0, currentPage: page, itemsPerPage: limit }
-         });
-      }
-      
+      // Step 2: Query appointments matching patient IDs OR exactly matching appointment ID
+      query.$or = [
+        { patientId: { $in: patientIds } },
+        { appointmentId: searchRegex }
+      ];
+    } else if (req.query.gender) {
+      const patientQuery = { gender: req.query.gender };
+      const matchingPatients = await Patient.find(patientQuery).select('_id');
+      const patientIds = matchingPatients.map(p => p._id);
       query.patientId = { $in: patientIds };
     }
 
-    const [result, totalAppointments] = await Promise.all([
+    const [rawResult, totalAppointments] = await Promise.all([
       Appointment.find(query)
         .populate("patientId")
         .populate("chamberId")
         .skip(skip)
         .limit(limit)
         .sort({ createdAt: -1 }),
-      Appointment.countDocuments(query) 
+      Appointment.countDocuments(query)
     ]);
+
+    // Calculate Dynamic Prescription Status
+    const result = await Promise.all(rawResult.map(async (appt) => {
+        const apptObj = appt.toObject();
+        
+        if (!appt.patientId || !appt.chamberId) {
+            apptObj.isPrescription = 'No';
+            return apptObj;
+        }
+
+        const apptDate = new Date(appt.appointmentDate);
+        const startOfDay = new Date(apptDate).setHours(0, 0, 0, 0);
+        const endOfDay = new Date(apptDate).setHours(23, 59, 59, 999);
+
+        const prescriptionExists = await Prescription.exists({
+            patientId: appt.patientId._id,
+            createdAt: { $gte: new Date(startOfDay), $lte: new Date(endOfDay) }
+        });
+
+        apptObj.isPrescription = prescriptionExists ? 'Yes' : 'No';
+        return apptObj;
+    }));
+
+    // Post-computation manual filter for isPrescription
+    let finalData = result;
+    if (req.query.isPrescription) {
+        finalData = result.filter(r => r.isPrescription === req.query.isPrescription);
+    }
 
     res.status(200).json({
       success: true,
-      data: result,
+      data: finalData,
       pagination: {
-        totalItems: totalAppointments,
+        totalItems: req.query.isPrescription ? finalData.length : totalAppointments,
         totalPages: Math.ceil(totalAppointments / limit),
         currentPage: page,
         itemsPerPage: limit
@@ -122,7 +148,8 @@ export async function getAppointmentById(req, res) {
   try {
     const result = await Appointment.findById(id)
       .populate("patientId")
-      .populate("chamberId");
+      .populate("chamberId")
+      .populate("preCheckupId");
 
     if (result) {
       res.status(200).json(result);
@@ -216,7 +243,6 @@ export async function removeAppointment(req, res) {
   const id = req.params.id;
   try {
     const result = await Appointment.findByIdAndDelete(id);
-    console.log(result);
     if (result) {
       res.status(200).json({ message: "Appointment deleted successfully" });
     } else {

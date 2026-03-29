@@ -9,7 +9,8 @@ const AppointmentSchema = Schema(
       unique: true,
     },
     preCheckupId: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "PreCheckup",
       default: null,
     },
     patientId: {
@@ -38,6 +39,11 @@ const AppointmentSchema = Schema(
       type: String,
       enum: ["New Patient", "Old Patient", "Report"],
       required: [true, "Please provide the patient type"],
+    },
+    isPrescription: {
+      type: String,
+      enum: ["Yes", "No"],
+      default: "No",
     },
     branch: {
       type: String,

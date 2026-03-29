@@ -1,5 +1,5 @@
 import PreCheckup from "./PreCheckups.model.js";
-import Patient from "../Patient/Patient.model.js";
+import Patient from "../Patient/Patients.model.js";
 
 // Get all PreCheckups
 export async function getAllPreCheckups(req, res) {
@@ -12,6 +12,7 @@ export async function getAllPreCheckups(req, res) {
     const [result, totalItems] = await Promise.all([
       PreCheckup.find()
         .populate("patient")
+        .populate("appointmentId")
         .skip(skip)
         .limit(limit)
         .sort({ createdAt: -1 }),
@@ -51,6 +52,7 @@ export async function getPreCheckupsByBranch(req, res) {
 
       PreCheckup.find({ branch })
         .populate("patient")
+        .populate("appointmentId")
         .skip(skip)
         .limit(limit)
         .sort({ createdAt: -1 }),
@@ -83,7 +85,9 @@ export async function getPreCheckupById(req, res) {
 
   try {
 
-    const result = await PreCheckup.findById(id).populate("patient");
+    const result = await PreCheckup.findById(id)
+        .populate("patient")
+        .populate("appointmentId");
 
     if (result) {
       res.status(200).json(result);
@@ -97,17 +101,19 @@ export async function getPreCheckupById(req, res) {
 }
 
 
+import Appointment from "../Appointment/Appointments.model.js";
+
 // Create PreCheckup
 export async function createPreCheckup(req, res) {
-
   try {
-
     const data = req.body;
-
     const result = await PreCheckup.create(data);
 
-    res.status(201).json(result);
+    if (data.appointmentId) {
+       await Appointment.findByIdAndUpdate(data.appointmentId, { preCheckupId: result._id });
+    }
 
+    res.status(201).json(result);
   } catch (err) {
     res.status(500).send({ error: err.message });
   }
@@ -140,19 +146,18 @@ export async function updatePreCheckup(req, res) {
 
 // Delete PreCheckup
 export async function removePreCheckup(req, res) {
-
   const id = req.params.id;
-
   try {
-
     const result = await PreCheckup.findByIdAndDelete(id);
 
     if (result) {
+      if (result.appointmentId) {
+         await Appointment.findByIdAndUpdate(result.appointmentId, { preCheckupId: null });
+      }
       res.status(200).json({ message: "PreCheckup deleted successfully" });
     } else {
       res.status(404).json({ message: "PreCheckup not found" });
     }
-
   } catch (err) {
     res.status(500).send({ error: err.message });
   }
