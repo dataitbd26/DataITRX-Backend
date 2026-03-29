@@ -20,6 +20,7 @@ export async function getAllAppointments(req, res) {
       Appointment.countDocuments()
     ]);
 
+
     res.status(200).json({
       success: true,
       data: result,
@@ -151,6 +152,8 @@ export async function getAppointmentById(req, res) {
       .populate("chamberId")
       .populate("preCheckupId");
 
+      console.log("Fetched Appointment:", result); // Debug log
+
     if (result) {
       res.status(200).json(result);
     } else {
@@ -176,6 +179,12 @@ export async function createAppointment(req, res) {
     let finalPatientId = patientId;
 
     if (patientDetails) {
+      // Date formatting fix added here
+      if (patientDetails.dateOfBirth && patientDetails.dateOfBirth.includes('/')) {
+        const [day, month, year] = patientDetails.dateOfBirth.split('/');
+        patientDetails.dateOfBirth = `${year}-${month}-${day}`; 
+      }
+      
       const newPatient = await Patient.create({ ...patientDetails, branch });
       finalPatientId = newPatient._id;
     }
