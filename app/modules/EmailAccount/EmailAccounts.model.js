@@ -39,6 +39,9 @@ const EmailAccountSchema = Schema(
     adminEmail: {
       type: String,
     },
+    branch: {
+      type: String,
+    },
     active: {
       type: Boolean,
       required: [true, "Please provide the active status"],

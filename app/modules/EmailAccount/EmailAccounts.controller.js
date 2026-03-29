@@ -76,6 +76,7 @@ export async function createEmailAccount(req, res) {
   try {
     const emailAccountData = req.body;
     const result = await EmailAccount.create(emailAccountData);
+    // console.log("✅ Email account created:", result);
     res.status(201).json(result);
   } catch (err) {
     res.status(500).send({ error: err.message });
