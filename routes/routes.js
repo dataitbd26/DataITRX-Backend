@@ -33,7 +33,7 @@ import AppointmentRoutes from "../app/modules/Appointment/Appointments.routes.js
 
 import { getBranchDoctorNames } from "../app/modules/DoctorProfile/DoctorProfiles.controller.js";
 import AppointmentBlockRoutes from "../app/modules/AppointmentBlock/AppointmentBlock.routes.js";
-
+import NewsRoutes from "../app/modules/blogs/News.routes.js";
 
 const routes = Router();
 
@@ -68,6 +68,6 @@ routes.use("/appointments", AppointmentRoutes);
 routes.use("/precheckups", PreCheckupRoutes);
 routes.use("/appointment-blocks", AppointmentBlockRoutes);
 
-routes.use("/email-accounts", EmailAccountRoutes); // <-- Added EmailAccount Route
-
+routes.use("/email-accounts", EmailAccountRoutes);
+routes.use("/news", NewsRoutes);
 export default routes;

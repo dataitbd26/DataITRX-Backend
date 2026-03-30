@@ -152,7 +152,7 @@ export async function getAppointmentById(req, res) {
       .populate("chamberId")
       .populate("preCheckupId");
 
-      console.log("Fetched Appointment:", result); // Debug log
+      // console.log("Fetched Appointment:", result); // Debug log
 
     if (result) {
       res.status(200).json(result);
