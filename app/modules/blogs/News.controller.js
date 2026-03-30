@@ -2,12 +2,24 @@ import News from "./News.model.js";
 
 export async function getAllNews(req, res) {
   try {
-    const result = await News.find();
+    const result = await News.find().sort({ date: -1 }); // Added sorting to show newest first
     res.json(result);
   } catch (err) {
     res.status(500).send({ error: err.message });
   }
 }
+
+// --- Add this new function ---
+export async function getNewsByBranch(req, res) {
+  const branch = req.params.branch;
+  try {
+    const result = await News.find({ branch }).sort({ date: -1 });
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(500).send({ error: err.message });
+  }
+}
+// -----------------------------
 
 export async function getNewsById(req, res) {
   const id = req.params.id;

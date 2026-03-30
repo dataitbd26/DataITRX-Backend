@@ -33,7 +33,7 @@ import AppointmentRoutes from "../app/modules/Appointment/Appointments.routes.js
 
 import { getBranchDoctorNames } from "../app/modules/DoctorProfile/DoctorProfiles.controller.js";
 import AppointmentBlockRoutes from "../app/modules/AppointmentBlock/AppointmentBlock.routes.js";
-import NewsRoutes from "../app/modules/News/News.routes.js";
+import NewsRoutes from "../app/modules/blogs/News.routes.js";
 
 const routes = Router();
 
