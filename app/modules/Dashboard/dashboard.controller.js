@@ -8,15 +8,16 @@ import DoctorProfile from "../DoctorProfile/DoctorProfiles.model.js";
 import UserLog from "../UserLog/UserLog.model.js";
 import Labtest from "../Labtest/Labtests.model.js";
 import LabTestDept from "../LabTestDept/LabTestDept.model.js";
-import moment from "moment";
+import moment from "moment-timezone";
 
 export const getSuperAdminDashboard = async (req, res) => {
   try {
+    const defaultTimezone = "Asia/Dhaka";
     // 1. Setup Date Boundaries
-    const startOfDay = moment().startOf("day").toDate();
-    const endOfDay = moment().endOf("day").toDate();
-    const startOfMonth = moment().startOf("month").toDate();
-    const endOfMonth = moment().endOf("month").toDate();
+    const startOfDay = moment.tz(defaultTimezone).startOf("day").toDate();
+    const endOfDay = moment.tz(defaultTimezone).endOf("day").toDate();
+    const startOfMonth = moment.tz(defaultTimezone).startOf("month").toDate();
+    const endOfMonth = moment.tz(defaultTimezone).endOf("month").toDate();
 
     const { startDate, endDate } = req.query;
     let dateFilter = {};
@@ -120,7 +121,7 @@ export const getSuperAdminDashboard = async (req, res) => {
       Prescription.aggregate([{ $match: dateFilter }, { $group: { _id: "$status", count: { $sum: 1 } } }]),
       Prescription.aggregate([
         { $match: { createdAt: { $gte: new Date(new Date().setDate(new Date().getDate() - 30)) } } },
-        { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }, count: { $sum: 1 } } },
+        { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt", timezone: defaultTimezone } }, count: { $sum: 1 } } },
         { $sort: { _id: 1 } }
       ]),
       Patient.aggregate([{ $match: dateFilter }, { $group: { _id: "$gender", count: { $sum: 1 } } }]),

@@ -1,4 +1,4 @@
-import moment from "moment";
+import moment from "moment-timezone";
 import Chamber from "../Chamber/Chambers.model.js";
 import DoctorProfile from "../DoctorProfile/DoctorProfiles.model.js";
 import DoctorWebsite from "../Doctorwebsite/doctorwebsite.model.js";
@@ -6,6 +6,7 @@ import Patient from "../Patient/Patients.model.js";
 import Prescription from "../Prescription/Prescription.model.js";
 import PrescriptionTemplate from "../PrescriptionTemplates/PrescriptionTemplates.model.js";
 import User from "../User/Users.model.js";
+import SystemPreference from "../SystemPreference/SystemPreferences.model.js";
 import axios from "axios";
 /// Helper function to map OpenWeather condition codes to emojis
 const getOpenWeatherEmoji = (iconCode) => {
@@ -48,12 +49,15 @@ export const getBranchDashboard = async (req, res) => {
         })
       : Promise.resolve(null);
 
-    // 3. Setup Date Boundaries
-    const startOfDay = moment().startOf("day").toDate();
-    const endOfDay = moment().endOf("day").toDate();
-    const startOfMonth = moment().startOf("month").toDate();
-    const endOfMonth = moment().endOf("month").toDate();
-    const thirtyDaysAgo = moment().subtract(30, "days").toDate();
+    // 3. Setup Timezone & Date Boundaries
+    const preference = await SystemPreference.findOne({ branch: branch });
+    const timezone = preference?.timezone || "Asia/Dhaka";
+
+    const startOfDay = moment.tz(timezone).startOf("day").toDate();
+    const endOfDay = moment.tz(timezone).endOf("day").toDate();
+    const startOfMonth = moment.tz(timezone).startOf("month").toDate();
+    const endOfMonth = moment.tz(timezone).endOf("month").toDate();
+    const thirtyDaysAgo = moment.tz(timezone).subtract(30, "days").toDate();
 
     // 4. Run all other DB queries AND the weather fetch concurrently
     const [
@@ -91,7 +95,7 @@ export const getBranchDashboard = async (req, res) => {
       Patient.aggregate([{ $match: baseFilter }, { $group: { _id: "$gender", count: { $sum: 1 } } }]),
       Prescription.aggregate([
         { $match: { ...baseFilter, createdAt: { $gte: thirtyDaysAgo } } },
-        { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }, count: { $sum: 1 } } },
+        { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt", timezone: timezone } }, count: { $sum: 1 } } },
         { $sort: { _id: 1 } },
       ]),
 
