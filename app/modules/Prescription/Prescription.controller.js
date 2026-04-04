@@ -49,14 +49,25 @@ export async function getPrescriptionsByBranch(req, res) {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
         const skip = (page - 1) * limit;
+        const search = req.query.search;
+
+        let query = { branch };
+
+        if (search) {
+            query.$or = [
+                { 'patient.phone': { $regex: search, $options: 'i' } },
+                { 'patient.name': { $regex: search, $options: 'i' } },
+                { 'prescriptionId': { $regex: search, $options: 'i' } }
+            ];
+        }
 
         const [result, totalItems] = await Promise.all([
-            Prescription.find({ branch })
+            Prescription.find(query)
                 .skip(skip)
                 .limit(limit)
                 .sort({ createdAt: -1 }),
 
-            Prescription.countDocuments({ branch })
+            Prescription.countDocuments(query)
         ]);
 
         res.status(200).json({

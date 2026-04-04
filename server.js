@@ -4,6 +4,7 @@ import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import fileUpload from "express-fileupload";
+import cookieParser from "cookie-parser";
 import connectDB from "./config/db.js";
 import routes from "./routes/routes.js";
 import { errorHandler } from "./middleware/errorMiddleware.js";
@@ -50,6 +51,7 @@ app.use(
 
 
 app.use(express.json());
+app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(

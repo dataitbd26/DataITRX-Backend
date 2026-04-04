@@ -1,5 +1,6 @@
 import User from "./Users.model.js";
 import UserLog from "../UserLog/UserLog.model.js";
+import TokenBlacklist from "../TokenBlacklist/TokenBlacklist.model.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 
@@ -104,12 +105,23 @@ export async function loginUser(req, res) {
       branch: user.branch,
     });
 
-    const token = jwt.sign({ id: user._id, role: user.role }, "secretKey", { expiresIn: "24h" });
+    const secret = process.env.JWT_SECRET || "secretKey";
+    const token = jwt.sign({ id: user._id, role: user.role }, secret, { expiresIn: "24h" });
+
+    // Set HttpOnly Cookie
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    });
 
     // Remove password field from user object before sending response
     const userResponse = user.toObject();
     delete userResponse.password;
 
+    // Send token in response payload as well just in case legacy frontend code expects it,
+    // although they will now primarily transparently use the cookie.
     res.status(200).json({ message: "Login successful", user: userResponse, token });
   } catch (err) {
     res.status(500).send({ error: err.message });
@@ -149,15 +161,36 @@ export async function removeUser(req, res) {
 
 export async function logoutUser(req, res) {
   const { email } = req.body;
+  const token = req.token; // Extracted safely from authMiddleware
+  
   try {
-    // Find the most recent login entry
-    const log = await UserLog.findOne({ userEmail: email }).sort({ createdAt: -1 });
-    if (log && !log.logoutTime) {
-      log.logoutTime = new Date();
-      await log.save();
+    // 1. Mark MongoDB UserLog logoutTime
+    if (email) {
+      const log = await UserLog.findOne({ userEmail: email }).sort({ createdAt: -1 });
+      if (log && !log.logoutTime) {
+        log.logoutTime = new Date();
+        await log.save();
+      }
     }
+
+    // 2. Blacklist the Token
+    if (token) {
+      // Create entry, ignoring duplicate key errors if the exact token is submitted twice
+      await TokenBlacklist.create({ token }).catch(err => {
+        if (err.code !== 11000) throw err; // Only swallow duplicate key error
+      });
+    }
+
+    // 3. Clear HttpOnly Cookie
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    });
+
     res.status(200).json({ message: "Logout successful" });
   } catch (err) {
+    console.error("Logout Error:", err);
     res.status(500).send({ error: err.message });
   }
 }
