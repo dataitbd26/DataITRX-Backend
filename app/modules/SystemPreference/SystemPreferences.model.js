@@ -20,6 +20,10 @@ const SystemPreferenceSchema = Schema(
             type: Boolean,
             default: false,
         },
+        autoSendSmsReminder: {
+            type: Boolean,
+            default: false,
+        },
         prescriptionHeaderSize: {
             type: Number,
             default: 150,

@@ -67,6 +67,12 @@ const prescriptionSchema = new mongoose.Schema({
         phone: { type: String, default: '' }
     },
 
+    patientType: {
+        type: String,
+        enum: ['New Patient', 'Old Patient', 'Report', ''],
+        default: ''
+    },
+
     // --- VITALS ---
     vitals: {
         bp: { type: String, default: '' },
@@ -91,6 +97,7 @@ const prescriptionSchema = new mongoose.Schema({
     diagnosisText: { type: String, default: '' },
 
     investigations: [{ type: String }],
+    investigationsDiscount: { type: String, default: '' },
 
     // --- TREATMENT ---
     medicines: [medicineSchema],

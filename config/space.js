@@ -1,3 +1,4 @@
+import fs from "fs";
 import {
   S3Client,
   PutObjectCommand,
@@ -19,21 +20,21 @@ export async function uploadObject(key, file, mimetype) {
     Bucket: process.env.BUCKET, // The path to the directory you want to upload the object to, starting with your Space name.
     Key: key, // Object key, referenced whenever you want to access this file later.
     Body: file, // The object's contents. This variable is an object, not a string.
-    // ACL: "public-read", // Defines ACL permissions, such as private or public.
+    ACL: "public-read", // Defines ACL permissions, such as private or public.
     Metadata: {
       // Defines metadata tags.
       // "x-amz-meta-my-key": "your-value"
     },
-    ContentType: mimetype ? mimetype : "image",
+    ContentType: mimetype || "image/jpeg",
   };
 
   try {
     const data = await client.send(new PutObjectCommand(uploadParams));
     console.log(
       "Successfully uploaded object: " +
-        uploadParams.Bucket +
-        "/" +
-        uploadParams.Key
+      uploadParams.Bucket +
+      "/" +
+      uploadParams.Key
     );
     return data;
   } catch (err) {
@@ -61,9 +62,9 @@ export async function deleteObject(key) {
     const data = await client.send(new DeleteObjectCommand(deleteParams));
     console.log(
       "Successfully deleted object: " +
-        deleteParams.Bucket +
-        "/" +
-        deleteParams.Key
+      deleteParams.Bucket +
+      "/" +
+      deleteParams.Key
     );
     return data;
   } catch (err) {
@@ -103,9 +104,9 @@ export async function updateObject(createKey, file, deleteKey, mimetype) {
     await client.send(new PutObjectCommand(uploadParams));
     console.log(
       "Successfully uploaded object: " +
-        uploadParams.Bucket +
-        "/" +
-        uploadParams.Key
+      uploadParams.Bucket +
+      "/" +
+      uploadParams.Key
     );
     // return data;
   } catch (err) {
@@ -116,9 +117,9 @@ export async function updateObject(createKey, file, deleteKey, mimetype) {
     await client.send(new DeleteObjectCommand(deleteParams));
     console.log(
       "Successfully deleted object: " +
-        deleteParams.Bucket +
-        "/" +
-        deleteParams.Key
+      deleteParams.Bucket +
+      "/" +
+      deleteParams.Key
     );
     // return data;
   } catch (err) {
@@ -130,11 +131,27 @@ export async function getImageUrl(req, res) {
   const { pathName } = req.query;
   const image = req?.files?.image;
 
-  const imageUrl = `${pathName}/${Date.now() + "-" + image.name}`;
-  console.log(imageUrl);
+  if (!image) {
+    return res.status(400).json({ error: "No image provided" });
+  }
 
-  const resp = await uploadObject(imageUrl, image.data);
+  const imageUrl = `${pathName}/${Date.now() + "-" + image.name.replace(/\s+/g, '-')}`;
+  console.log("Uploading to:", imageUrl);
 
-  console.log(resp, "resp");
+  // When useTempFiles is true, express-fileupload stores the path in tempFilePath.
+  // We need to read it into a buffer/stream before uploading to AWS S3.
+  let fileData = image.data;
+  if (image.tempFilePath) {
+    fileData = fs.readFileSync(image.tempFilePath);
+  }
+
+  const resp = await uploadObject(imageUrl, fileData, image.mimetype);
+
+  // Clean up the temp file
+  if (image.tempFilePath && fs.existsSync(image.tempFilePath)) {
+    fs.unlinkSync(image.tempFilePath);
+  }
+
+  console.log("Upload Response:", !!resp);
   res.status(200).json({ path: imageUrl });
 }

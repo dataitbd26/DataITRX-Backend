@@ -14,7 +14,8 @@ import MedicineManufacturerRoutes from "../app/modules/MedicineManufacturer/Medi
 import DoctorWebsiteRoutes from "../app/modules/Doctorwebsite/doctorwebsite.routes.js";
 import PrescriptionTemplateRoutes from "../app/modules/PrescriptionTemplates/PrescriptionTemplates.routes.js";
 import PrescriptionRoutes from "../app/modules/Prescription/Prescription.routes.js";
-import EmailAccountRoutes from "../app/modules/EmailAccount/EmailAccounts.routes.js"; // <-- Added EmailAccount Import
+import EmailAccountRoutes from "../app/modules/EmailAccount/EmailAccounts.routes.js";
+import PublicRoutes from "../app/modules/Public/Public.routes.js";
 
 
 
@@ -42,6 +43,7 @@ routes.use(transactionLogger);
 
 // Active Routes
 
+routes.use("/public", PublicRoutes);
 routes.use("/permissions", permissionRoutes);
 routes.use("/user", userRoutes);
 routes.use("/userlog", UserlogRoutes);

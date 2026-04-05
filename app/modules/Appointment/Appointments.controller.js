@@ -69,7 +69,7 @@ export async function getAppointmentsByBranch(req, res) {
 
     if (req.query.search) {
       const searchRegex = new RegExp(req.query.search, 'i');
-      
+
       // Step 1: Find matching patients
       const matchingPatients = await Patient.find({
         $or: [
@@ -78,7 +78,7 @@ export async function getAppointmentsByBranch(req, res) {
         ]
       }).select('_id');
       const patientIds = matchingPatients.map(p => p._id);
-      
+
       // Step 2: Query appointments matching patient IDs OR exactly matching appointment ID
       query.$or = [
         { patientId: { $in: patientIds } },
@@ -103,30 +103,39 @@ export async function getAppointmentsByBranch(req, res) {
 
     // Calculate Dynamic Prescription Status
     const result = await Promise.all(rawResult.map(async (appt) => {
-        const apptObj = appt.toObject();
-        
-        if (!appt.patientId || !appt.chamberId) {
-            apptObj.isPrescription = 'No';
-            return apptObj;
-        }
+      const apptObj = appt.toObject();
 
-        const apptDate = new Date(appt.appointmentDate);
-        const startOfDay = new Date(apptDate).setHours(0, 0, 0, 0);
-        const endOfDay = new Date(apptDate).setHours(23, 59, 59, 999);
-
-        const prescriptionExists = await Prescription.exists({
-            patientId: appt.patientId._id,
-            createdAt: { $gte: new Date(startOfDay), $lte: new Date(endOfDay) }
-        });
-
-        apptObj.isPrescription = prescriptionExists ? 'Yes' : 'No';
+      if (!appt.patientId || !appt.chamberId) {
+        apptObj.isPrescription = 'No';
         return apptObj;
+      }
+
+      const apptDate = new Date(appt.appointmentDate);
+      const startOfDay = new Date(apptDate).setHours(0, 0, 0, 0);
+      const endOfDay = new Date(apptDate).setHours(23, 59, 59, 999);
+
+      const prescriptionExists = await Prescription.exists({
+        patientId: appt.patientId._id,
+        createdAt: { $gte: new Date(startOfDay), $lte: new Date(endOfDay) }
+      });
+
+      apptObj.isPrescription = prescriptionExists ? 'Yes' : 'No';
+
+      // Calculate dynamic payment amount based on patient type
+      let amount = 0;
+      if (appt.chamberId) {
+        if (appt.patientType === 'New Patient') amount = appt.chamberId.consultancyFee || 0;
+        else if (appt.patientType === 'Old Patient') amount = appt.chamberId.oldConsultancyFee || 0;
+      }
+      apptObj.amount = amount;
+
+      return apptObj;
     }));
 
     // Post-computation manual filter for isPrescription
     let finalData = result;
     if (req.query.isPrescription) {
-        finalData = result.filter(r => r.isPrescription === req.query.isPrescription);
+      finalData = result.filter(r => r.isPrescription === req.query.isPrescription);
     }
 
     res.status(200).json({
@@ -152,7 +161,7 @@ export async function getAppointmentById(req, res) {
       .populate("chamberId")
       .populate("preCheckupId");
 
-      // console.log("Fetched Appointment:", result); // Debug log
+    // console.log("Fetched Appointment:", result); // Debug log
 
     if (result) {
       res.status(200).json(result);
@@ -182,9 +191,9 @@ export async function createAppointment(req, res) {
       // Date formatting fix added here
       if (patientDetails.dateOfBirth && patientDetails.dateOfBirth.includes('/')) {
         const [day, month, year] = patientDetails.dateOfBirth.split('/');
-        patientDetails.dateOfBirth = `${year}-${month}-${day}`; 
+        patientDetails.dateOfBirth = `${year}-${month}-${day}`;
       }
-      
+
       const newPatient = await Patient.create({ ...patientDetails, branch });
       finalPatientId = newPatient._id;
     }
@@ -259,5 +268,81 @@ export async function removeAppointment(req, res) {
     }
   } catch (err) {
     res.status(500).send({ error: err.message });
+  }
+}
+
+export async function getPaymentStats(req, res) {
+  const branch = req.params.branch;
+  try {
+    const query = { branch, paymentStatus: 'Collect' };
+    if (req.query.chamberId) {
+      query.chamberId = req.query.chamberId;
+    }
+
+    const collectedAppointments = await Appointment.find(query).populate('chamberId');
+
+    const targetDate = req.query.date ? new Date(req.query.date) : new Date();
+    const startOfTarget = new Date(targetDate).setHours(0, 0, 0, 0);
+    const endOfTarget = new Date(targetDate).setHours(23, 59, 59, 999);
+
+    const startOfMonth = new Date(targetDate.getFullYear(), targetDate.getMonth(), 1).setHours(0, 0, 0, 0);
+    const startOfYear = new Date(targetDate.getFullYear(), 0, 1).setHours(0, 0, 0, 0);
+
+    let todaysEarning = 0;
+    let monthlyEarning = 0;
+    let yearlyEarning = 0;
+
+    for (let appt of collectedAppointments) {
+      if (!appt.chamberId) continue;
+
+      let amount = 0;
+      if (appt.patientType === 'New Patient') amount = appt.chamberId.consultancyFee || 0;
+      else if (appt.patientType === 'Old Patient') amount = appt.chamberId.oldConsultancyFee || 0;
+
+      if (amount === 0) continue;
+
+      const apptDate = new Date(appt.appointmentDate).getTime();
+
+      if (apptDate >= startOfTarget && apptDate <= endOfTarget) todaysEarning += amount;
+      if (apptDate >= startOfMonth) monthlyEarning += amount;
+      if (apptDate >= startOfYear) yearlyEarning += amount;
+    }
+
+    // 2. Count Patient statistics strictly for the targetDate regardless of payment status
+    const dailyAppointmentsQuery = {
+      branch,
+      appointmentDate: { $gte: startOfTarget, $lte: endOfTarget }
+    };
+
+    if (req.query.chamberId) {
+      dailyAppointmentsQuery.chamberId = req.query.chamberId;
+    }
+
+    const dailyAppointments = await Appointment.find(dailyAppointmentsQuery);
+
+    let newPatientCount = 0;
+    let oldPatientCount = 0;
+    let reportCount = 0;
+
+    dailyAppointments.forEach(appt => {
+      if (appt.patientType === 'New Patient') newPatientCount++;
+      else if (appt.patientType === 'Old Patient') oldPatientCount++;
+      else if (appt.patientType === 'Report') reportCount++;
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        todaysEarning,
+        monthlyEarning,
+        yearlyEarning,
+        newPatientCount,
+        oldPatientCount,
+        reportCount
+      }
+    });
+
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
   }
 }

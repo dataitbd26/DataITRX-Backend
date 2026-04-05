@@ -6,7 +6,8 @@ import {
     getPrescriptionById,
     createPrescription,
     updatePrescription,
-    removePrescription
+    removePrescription,
+    getPrescriptionStats
 } from "./Prescription.controller.js";
 
 import { authenticateToken } from "../../../middleware/authMiddleware.js";
@@ -16,6 +17,8 @@ const PrescriptionRoutes = Router();
 PrescriptionRoutes.get("/", authenticateToken, getAllPrescriptions);
 
 PrescriptionRoutes.get("/:branch/get-all", authenticateToken, getPrescriptionsByBranch);
+
+PrescriptionRoutes.get("/:branch/prescription-stats", authenticateToken, getPrescriptionStats);
 
 PrescriptionRoutes.get("/get-id/:id", authenticateToken, getPrescriptionById);
 

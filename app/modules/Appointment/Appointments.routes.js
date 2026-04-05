@@ -6,14 +6,15 @@ import {
   getAppointmentsByBranch,
   updateAppointment,
   removeAppointment,
+  getPaymentStats,
 } from "./Appointments.controller.js";
 import { authenticateToken } from "../../../middleware/authMiddleware.js";
 
 const AppointmentRoutes = Router();
 
-
 AppointmentRoutes.get("/", authenticateToken, getAllAppointments);
 AppointmentRoutes.get("/:branch/get-all", authenticateToken, getAppointmentsByBranch);
+AppointmentRoutes.get("/:branch/payment-stats", authenticateToken, getPaymentStats);
 AppointmentRoutes.get("/get-id/:id", authenticateToken, getAppointmentById);
 AppointmentRoutes.post("/post", authenticateToken, createAppointment);
 AppointmentRoutes.put("/update/:id", authenticateToken, updateAppointment);
