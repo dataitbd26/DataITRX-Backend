@@ -1,4 +1,5 @@
 import Labtest from "./Labtests.model.js";
+import LabTestDept from "../LabTestDept/LabTestDept.model.js"; // Kept your import
 
 export async function getAllLabtests(req, res) {
   try {
@@ -6,9 +7,34 @@ export async function getAllLabtests(req, res) {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
+    // Extract query params
+    const search = req.query.search;
+    const department = req.query.department;
+    const status = req.query.status;
+
+    let filter = {};
+
+    // Department filter
+    if (department) {
+      filter.department = department;
+    }
+
+    // Status filter
+    if (status) {
+      filter.status = status;
+    }
+
+    // Search filter
+    if (search) {
+      filter.$or = [
+        { testName: { $regex: search, $options: "i" } },
+        { department: { $regex: search, $options: "i" } },
+      ];
+    }
+
     const [result, totalLabtests] = await Promise.all([
-      Labtest.find().skip(skip).limit(limit).sort({ createdAt: -1 }),
-      Labtest.countDocuments()
+      Labtest.find(filter).skip(skip).limit(limit).sort({ createdAt: -1 }),
+      Labtest.countDocuments(filter),
     ]);
 
     res.status(200).json({
@@ -18,14 +44,13 @@ export async function getAllLabtests(req, res) {
         totalItems: totalLabtests,
         totalPages: Math.ceil(totalLabtests / limit),
         currentPage: page,
-        itemsPerPage: limit
-      }
+        itemsPerPage: limit,
+      },
     });
   } catch (err) {
     res.status(500).send({ error: err.message });
   }
 }
-
 // Get labtest by ID
 export async function getLabtestById(req, res) {
   const id = req.params.id;

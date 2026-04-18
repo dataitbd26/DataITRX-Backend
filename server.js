@@ -4,6 +4,7 @@ import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import fileUpload from "express-fileupload";
+import cookieParser from "cookie-parser";
 import connectDB from "./config/db.js";
 import routes from "./routes/routes.js";
 import { errorHandler } from "./middleware/errorMiddleware.js";
@@ -14,12 +15,10 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 connectDB();
-
-
 app.use(helmet({ hidePoweredBy: true }));
 
 const limiter = rateLimit({
-  windowMs: 5 * 60 * 1000, // 5 minutes
+  windowMs: 5 * 60 * 1000,
   max: 10000,
 });
 app.use(limiter);
@@ -29,9 +28,12 @@ app.use(limiter);
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(",")
   : [
-      "http://localhost:5173",
-      "http://localhost:3000",
-    ];
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "https://dataitrx-frontend.vercel.app",
+    "https://dataitrx.com",
+    "https://www.dataitrx.com"
+  ];
 
 app.use(
   cors({
@@ -49,20 +51,20 @@ app.use(
 
 
 app.use(express.json());
+app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(
   fileUpload({
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+    limits: { fileSize: 5 * 1024 * 1024 },
+    useTempFiles: true,
+    tempFileDir: '/tmp/'
   })
 );
 
 
 
 app.use(express.static("public"));
-
-
-
 app.use("/api", routes);
 
 app.get("/", (req, res) => {
@@ -70,11 +72,7 @@ app.get("/", (req, res) => {
 });
 
 
-
 app.use(errorHandler);
-
-
-
 app.listen(port, () => {
   console.log(`🚀 Server running on port ${port}`);
 });

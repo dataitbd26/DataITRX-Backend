@@ -1,17 +1,14 @@
-import moment from "moment";
+import moment from "moment-timezone";
 
-export function generateRecentDates() {
-  const newDate = new Date();
-
-  // Set the date to the first day of the current month
-  newDate.setDate(1);
-
-  // Subtract one day to get the last day of the previous month
-  newDate.setDate(newDate.getDate() - 1);
+export function generateRecentDates(timezone = "Asia/Dhaka") {
+  // We use moment to respect the timezone when evaluating today vs last month boundaries
+  const localMoment = moment().tz(timezone);
+  const today = localMoment.date();
+  
+  const lastMonthMoment = localMoment.clone().subtract(1, 'months').endOf('month');
+  const lastDayOfLastMonth = lastMonthMoment.date();
 
   const dates = [];
-  const today = new Date().getDate();
-  const lastDayOfLastMonth = newDate.getDate();
 
   for (let day = today; day <= lastDayOfLastMonth; day++) {
     dates.push({
@@ -28,14 +25,18 @@ export function generateRecentDates() {
   return dates;
 }
 
-export function generateDates(year, month) {
+export function generateDates(year, month, timezone = "Asia/Dhaka") {
   const dates = [];
-  const currentDays = generateRecentDates();
-  const currentMonth = new Date().getMonth() + 1;
-  const currentYear = new Date().getFullYear();
-  const inputYear = new Date(year, month).getFullYear();
-  const inputMonth = new Date(year, month).getMonth();
-  const daysInMonth = new Date(year, month, 0).getDate();
+  const currentDays = generateRecentDates(timezone);
+  
+  const localMoment = moment().tz(timezone);
+  const currentMonth = localMoment.month() + 1; // 1-12
+  const currentYear = localMoment.year();
+
+  const inputMoment = moment.tz(`${year}-${month < 10 ? '0'+month : month}-01`, "YYYY-MM-DD", timezone);
+  const inputYear = inputMoment.year();
+  const inputMonth = inputMoment.month() + 1;
+  const daysInMonth = inputMoment.daysInMonth();
   for (let day = 1; day <= daysInMonth; day++) {
     dates.push({
       _id: day < 10 ? `0${day}` : day,

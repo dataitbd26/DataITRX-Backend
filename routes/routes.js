@@ -11,10 +11,31 @@ import ChamberRoutes from "../app/modules/Chamber/Chambers.routes.js";
 import LabtestRoutes from "../app/modules/Labtest/Labtests.routes.js";
 import MedicinesRoutes from "../app/modules/Medicine/Medicine.routes.js";
 import MedicineManufacturerRoutes from "../app/modules/MedicineManufacturer/MedicineManufacturers.routes.js";
+import DoctorWebsiteRoutes from "../app/modules/Doctorwebsite/doctorwebsite.routes.js";
+import PrescriptionTemplateRoutes from "../app/modules/PrescriptionTemplates/PrescriptionTemplates.routes.js";
+import PrescriptionRoutes from "../app/modules/Prescription/Prescription.routes.js";
+import EmailAccountRoutes from "../app/modules/EmailAccount/EmailAccounts.routes.js";
+import PublicRoutes from "../app/modules/Public/Public.routes.js";
+
+
+
 // Used Controllers / Middleware
 import { getImageUrl } from "../config/space.js";
 import transactionLogger from "../middleware/transactionLogger.js";
 import LabTestDeptRoutes from "../app/modules/LabTestDept/LabTestDept.routes.js";
+import PatientRoutes from "../app/modules/Patient/Patients.routes.js";
+import ExportRoutes from "../app/modules/exportDB/export.route.js";
+import ImportRoutes from "../app/modules/ImportDB/import.route.js";
+import dashboardRoutes from "../app/modules/Dashboard/dashboard.routes.js";
+
+import PreCheckupRoutes from "../app/modules/PreCheckups/PreCheckups.routes.js";
+import AppointmentRoutes from "../app/modules/Appointment/Appointments.routes.js";
+
+
+import { getBranchDoctorNames } from "../app/modules/DoctorProfile/DoctorProfiles.controller.js";
+import AppointmentBlockRoutes from "../app/modules/AppointmentBlock/AppointmentBlock.routes.js";
+import NewsRoutes from "../app/modules/blogs/News.routes.js";
+import SystemPreferenceRoutes from "../app/modules/SystemPreference/SystemPreferences.routes.js";
 const routes = Router();
 
 // Middleware
@@ -22,6 +43,7 @@ routes.use(transactionLogger);
 
 // Active Routes
 
+routes.use("/public", PublicRoutes);
 routes.use("/permissions", permissionRoutes);
 routes.use("/user", userRoutes);
 routes.use("/userlog", UserlogRoutes);
@@ -34,5 +56,20 @@ routes.use("/chambers", ChamberRoutes);
 routes.use("/labtests", LabtestRoutes);
 routes.use("/medicines", MedicinesRoutes);
 routes.use("/medicine-manufacturers", MedicineManufacturerRoutes);
+routes.use("/export", ExportRoutes);
+routes.use("/import", ImportRoutes);
+routes.use("/prescriptions", PrescriptionRoutes);
+routes.use("/doctorwebsite", DoctorWebsiteRoutes);
+routes.use("/labtestdepts", LabTestDeptRoutes);
 routes.use("/lab-test-dept", LabTestDeptRoutes);
+routes.use("/patients", PatientRoutes);
+routes.use("/prescription-templates", PrescriptionTemplateRoutes);
+routes.get("/branch-doctor-list", getBranchDoctorNames);
+routes.use("/dashboard", dashboardRoutes);
+routes.use("/appointments", AppointmentRoutes);
+routes.use("/precheckups", PreCheckupRoutes);
+routes.use("/appointment-blocks", AppointmentBlockRoutes);
+routes.use("/system-preferences", SystemPreferenceRoutes);
+routes.use("/email-accounts", EmailAccountRoutes);
+routes.use("/news", NewsRoutes);
 export default routes;
