@@ -108,12 +108,12 @@ export async function loginUser(req, res) {
     const secret = process.env.JWT_SECRET || "secretKey";
     const token = jwt.sign({ id: user._id, role: user.role }, secret, { expiresIn: "24h" });
 
-    // Set HttpOnly Cookie
+     // Set HttpOnly Cookie
     res.cookie('token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+      secure: true,     // Force true for testing
+      sameSite: 'none', // Force 'none' for testing
+      maxAge: 24 * 60 * 60 * 1000
     });
 
     // Remove password field from user object before sending response
