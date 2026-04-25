@@ -247,6 +247,7 @@ export async function updateAppointment(req, res) {
     const result = await Appointment.findByIdAndUpdate(id, appointmentData, {
       new: true,
     });
+    console.log(result)
     if (result) {
       res.status(200).json(result);
     } else {
