@@ -73,6 +73,7 @@ export async function createChamber(req, res) {
     try {
         const chamberData = req.body;
         const result = await Chamber.create(chamberData);
+        console.log("Chamber created:", result);
         res.status(201).json(result);
     } catch (err) {
         res.status(500).send({ error: err.message });

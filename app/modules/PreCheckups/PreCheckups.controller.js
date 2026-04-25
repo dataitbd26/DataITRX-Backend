@@ -20,6 +20,8 @@ export async function getAllPreCheckups(req, res) {
       PreCheckup.countDocuments(),
     ]);
 
+    
+
     res.status(200).json({
       success: true,
       data: result,
@@ -60,6 +62,9 @@ export async function getPreCheckupsByBranch(req, res) {
       PreCheckup.countDocuments({ branch }),
 
     ]);
+
+    // console.log("Total Items:", totalItems);
+    // console.log("Current Page:", );
 
     res.status(200).json({
       success: true,

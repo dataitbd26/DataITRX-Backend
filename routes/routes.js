@@ -19,6 +19,7 @@ import PublicRoutes from "../app/modules/Public/Public.routes.js";
 
 
 
+
 // Used Controllers / Middleware
 import { getImageUrl } from "../config/space.js";
 import transactionLogger from "../middleware/transactionLogger.js";
@@ -36,6 +37,10 @@ import { getBranchDoctorNames } from "../app/modules/DoctorProfile/DoctorProfile
 import AppointmentBlockRoutes from "../app/modules/AppointmentBlock/AppointmentBlock.routes.js";
 import NewsRoutes from "../app/modules/blogs/News.routes.js";
 import SystemPreferenceRoutes from "../app/modules/SystemPreference/SystemPreferences.routes.js";
+
+import medicinePwaRoutes from '../app/modules/medicinepwa/medicineSync.routes.js';
+import labtestPwaRoutes from "../app/modules/labtestpwa/labtestSync.routes.js"
+
 const routes = Router();
 
 // Middleware
@@ -72,4 +77,6 @@ routes.use("/appointment-blocks", AppointmentBlockRoutes);
 routes.use("/system-preferences", SystemPreferenceRoutes);
 routes.use("/email-accounts", EmailAccountRoutes);
 routes.use("/news", NewsRoutes);
+routes.use('/medicinepwa', medicinePwaRoutes);
+routes.use("/labtestpwa", labtestPwaRoutes);
 export default routes;
